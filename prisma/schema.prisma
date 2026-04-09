@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  PETUGAS
+  PEMINJAM
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum StatusPeminjaman {
+  PENDING
+  DIPINJAM
+  DITOLAK
+  DIKEMBALIKAN
+}
+
+enum PaymentStatus {
+  BELUM_BAYAR
+  LUNAS
+}
+
+model User {
+  id               Int            @id @default(autoincrement())
+  username         String         @unique @db.VarChar(255)
+  password         String         @db.VarChar(255)
+  nama             String         @db.VarChar(255)
+  role             Role           @default(PEMINJAM)
+  status           UserStatus     @default(PENDING)
+  peminjaman       Peminjaman[]
+  logAktivitas     LogAktivitas[]
+  messagesSent     Message[]      @relation("SentMessages")
+  messagesReceived Message[]      @relation("ReceivedMessages")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model Kategori {
+  id    Int    @id @default(autoincrement())
+  nama  String @db.VarChar(100)
+  alats Alat[]
+}
+
+model Alat {
+  id          Int          @id @default(autoincrement())
+  nama        String       @db.VarChar(255)
+  deskripsi   String?      @db.Text
+  stok        Int          @default(0)
+  id_kategori Int
+  kategori    Kategori     @relation(fields: [id_kategori], references: [id])
+  peminjaman  Peminjaman[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Peminjaman {
+  id                      Int              @id @default(autoincrement())
+  id_user                 Int
+  id_alat                 Int
+  jumlah                  Int              @default(1)
+  tanggal_pinjam          DateTime         @default(now())
+  tanggal_kembali_rencana DateTime
+  status                  StatusPeminjaman @default(PENDING)
+  user                    User             @relation(fields: [id_user], references: [id])
+  alat                    Alat             @relation(fields: [id_alat], references: [id])
+  pengembalian            Pengembalian?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+}
+
+model Pengembalian {
+  id                     Int           @id @default(autoincrement())
+  id_peminjaman          Int           @unique
+  tanggal_kembali_aktual DateTime      @default(now())
+  denda                  Decimal       @default(0.00) @db.Decimal(10, 2)
+  status_pembayaran      PaymentStatus @default(LUNAS)
+  snapToken             String?       @db.VarChar(255)
+  snapUrl               String?       @db.VarChar(255)
+  peminjaman             Peminjaman    @relation(fields: [id_peminjaman], references: [id])
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+model LogAktivitas {
+  id        Int      @id @default(autoincrement())
+  id_user   Int
+  aktivitas String   @db.Text
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [id_user], references: [id])
+}
