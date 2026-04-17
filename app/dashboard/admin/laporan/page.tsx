@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PrintButton } from "@/components/PrintButton";
 
 export default async function LaporanPage() {
-  const data = await prisma.peminjaman.findMany({
+  const rawData = await prisma.peminjaman.findMany({
     include: {
       user: true,
       alat: true,
@@ -11,6 +11,19 @@ export default async function LaporanPage() {
     },
     orderBy: { createdAt: "desc" }
   });
+
+  // Serialize Prisma Decimal to String for Client Component
+  const data = rawData.map(item => ({
+    ...item,
+    alat: {
+      ...item.alat,
+      harga: item.alat.harga ? item.alat.harga.toString() : "0"
+    },
+    pengembalian: item.pengembalian ? {
+      ...item.pengembalian,
+      denda: item.pengembalian.denda ? item.pengembalian.denda.toString() : "0"
+    } : null
+  }));
 
   return (
     <div className="space-y-6">
@@ -43,11 +56,11 @@ export default async function LaporanPage() {
                     <td className="px-4 py-3 border-r font-mono">#{item.id}</td>
                     <td className="px-4 py-3 border-r">{item.user.nama}</td>
                     <td className="px-4 py-3 border-r">{item.alat.nama}</td>
-                    <td className="px-4 py-3 border-r">{item.tanggal_pinjam.toLocaleDateString()}</td>
+                    <td className="px-4 py-3 border-r">{new Date(item.tanggal_pinjam).toLocaleDateString()}</td>
                     <td className="px-4 py-3 border-r">
                       {item.pengembalian 
-                        ? item.pengembalian.tanggal_kembali_aktual.toLocaleDateString()
-                        : item.tanggal_kembali_rencana.toLocaleDateString() + " (Rencana)"}
+                        ? new Date(item.pengembalian.tanggal_kembali_aktual).toLocaleDateString()
+                        : new Date(item.tanggal_kembali_rencana).toLocaleDateString() + " (Rencana)"}
                     </td>
                     <td className="px-4 py-3 border-r">{item.status}</td>
                     <td className="px-4 py-3">

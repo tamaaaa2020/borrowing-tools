@@ -74,6 +74,7 @@ export default async function AdminPengembalianPage() {
                   <th className="px-6 py-4">Peminjam</th>
                   <th className="px-6 py-4">Alat</th>
                   <th className="px-6 py-4 text-center">Jumlah</th>
+                  <th className="px-6 py-4">Kondisi</th>
                   <th className="px-6 py-4">Tgl Kembali</th>
                   <th className="px-6 py-4">Denda</th>
                   <th className="px-6 py-4">Status Bayar</th>
@@ -90,7 +91,16 @@ export default async function AdminPengembalianPage() {
                         {p.peminjaman.jumlah}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-500">{p.tanggal_kembali_aktual.toLocaleDateString('id-ID')}</td>
+                    <td className="px-6 py-4">
+                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                        p.kondisi === "BAIK" ? "bg-emerald-50 text-emerald-600" :
+                        p.kondisi === "RUSAK" ? "bg-amber-50 text-amber-600" :
+                        "bg-rose-50 text-rose-600"
+                      }`}>
+                        {p.kondisi || "BAIK"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-slate-500">{new Date(p.tanggal_kembali_aktual).toLocaleDateString('id-ID')}</td>
                     <td className="px-6 py-4">
                       <div className={`font-bold ${Number(p.denda) > 0 ? 'text-rose-600' : 'text-slate-400'}`}>
                         Rp {Number(p.denda).toLocaleString('id-ID')}

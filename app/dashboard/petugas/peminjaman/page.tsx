@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { updateStatusPeminjaman, autoRejectExpiredLoans } from "@/actions/peminjaman";
 
-export default async function AdminPeminjamanPage() {
+export default async function PetugasPeminjamanPage() {
   // Panggil auto-reject setiap kali halaman dibuka
   await autoRejectExpiredLoans();
 
@@ -67,7 +67,7 @@ export default async function AdminPeminjamanPage() {
                 ))}
                 {peminjamans.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">Tidak ada pengajuan pending.</td>
+                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">Tidak ada pengajuan pending.</td>
                   </tr>
                 )}
               </tbody>

@@ -3,7 +3,7 @@ import PilihAlatClient from "@/components/PilihAlatClient";
 
 export default async function PilihAlatPage() {
   const alats = await prisma.alat.findMany({
-    include: { kategori: true },
+    include: { kategori: true, rak: true },
     where: { stok: { gt: 0 } }
   });
 

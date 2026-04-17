@@ -34,6 +34,24 @@ enum PaymentStatus {
   LUNAS
 }
 
+enum KondisiAlat {
+  BAIK
+  RUSAK
+  HILANG
+}
+
+model Rak {
+  id        Int      @id @default(autoincrement())
+  nama      String   @db.VarChar(100)
+  lokasi    String   @db.VarChar(255)
+  kapasitas Int
+  terisi    Int      @default(0)
+  status    String   @default("TERSEDIA") // TERSEDIA, PENUH
+  alats     Alat[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model User {
   id               Int            @id @default(autoincrement())
   username         String         @unique @db.VarChar(255)
@@ -56,15 +74,19 @@ model Kategori {
 }
 
 model Alat {
-  id          Int          @id @default(autoincrement())
-  nama        String       @db.VarChar(255)
-  deskripsi   String?      @db.Text
-  stok        Int          @default(0)
-  id_kategori Int
-  kategori    Kategori     @relation(fields: [id_kategori], references: [id])
-  peminjaman  Peminjaman[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id              Int          @id @default(autoincrement())
+  nama            String       @db.VarChar(255)
+  deskripsi       String?      @db.Text
+  stok            Int          @default(0)
+  tahun_pembelian Int?
+  harga           Decimal      @default(0.00) @db.Decimal(10, 2)
+  id_kategori     Int
+  id_rak          Int?
+  kategori        Kategori     @relation(fields: [id_kategori], references: [id])
+  rak             Rak?         @relation(fields: [id_rak], references: [id])
+  peminjaman      Peminjaman[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 }
 
 model Peminjaman {
@@ -86,10 +108,11 @@ model Pengembalian {
   id                     Int           @id @default(autoincrement())
   id_peminjaman          Int           @unique
   tanggal_kembali_aktual DateTime      @default(now())
+  kondisi                KondisiAlat   @default(BAIK)
   denda                  Decimal       @default(0.00) @db.Decimal(10, 2)
   status_pembayaran      PaymentStatus @default(LUNAS)
-  snapToken             String?       @db.VarChar(255)
-  snapUrl               String?       @db.VarChar(255)
+  snapToken              String?       @db.VarChar(255)
+  snapUrl                String?       @db.VarChar(255)
   peminjaman             Peminjaman    @relation(fields: [id_peminjaman], references: [id])
 }
 

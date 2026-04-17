@@ -73,13 +73,13 @@ export async function updateStatusPeminjaman(id: number, status: "DIPINJAM" | "D
 }
 
 export async function autoRejectExpiredLoans() {
-  const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
 
   try {
     const expiredLoans = await prisma.peminjaman.findMany({
       where: {
         status: "PENDING",
-        createdAt: { lt: oneMinuteAgo }
+        createdAt: { lt: thirtyMinutesAgo }
       }
     });
 
@@ -98,7 +98,7 @@ export async function autoRejectExpiredLoans() {
   }
 }
 
-export async function kembalikanAlat(id: number) {
+export async function kembalikanAlat(id: number, kondisi: "BAIK" | "RUSAK" | "HILANG" = "BAIK") {
   const peminjaman = await prisma.peminjaman.findUnique({
     where: { id },
     include: { alat: true }
@@ -111,14 +111,27 @@ export async function kembalikanAlat(id: number) {
   const now = new Date();
   let denda = 0;
 
-  // Hitung denda: Kelipatan 5rb per jam jika telat > 1 jam
+  // Hitung denda telat: Kelipatan 5rb per jam jika telat > 1 jam
   const diffMs = now.getTime() - peminjaman.tanggal_kembali_rencana.getTime();
   const diffHours = diffMs / (1000 * 60 * 60);
 
   if (diffHours > 1) {
-    // Math.ceil untuk kelipatan per jam (misal 1.1 jam jadi 2 jam denda)
-    denda = Math.ceil(diffHours) * 5000;
+    denda += Math.ceil(diffHours) * 5000;
   }
+
+  // Hitung denda kondisi berdasarkan range harga
+  const hargaAlat = Number(peminjaman.alat.harga) || 0;
+  let dendaKondisi = 0;
+
+  if (kondisi === "RUSAK") {
+    // Misal: denda rusak = 50% dari harga * jumlah
+    dendaKondisi = hargaAlat * 0.5 * peminjaman.jumlah;
+  } else if (kondisi === "HILANG") {
+    // Misal: denda hilang = 100% dari harga * jumlah
+    dendaKondisi = hargaAlat * peminjaman.jumlah;
+  }
+
+  denda += dendaKondisi;
 
   try {
     await prisma.$transaction([
@@ -132,15 +145,18 @@ export async function kembalikanAlat(id: number) {
         data: {
           id_peminjaman: id,
           tanggal_kembali_aktual: now,
+          kondisi: kondisi,
           denda: denda,
           status_pembayaran: denda > 0 ? "BELUM_BAYAR" : "LUNAS",
         }
       }),
-      // Tambah stok alat
-      prisma.alat.update({
-        where: { id: peminjaman.id_alat },
-        data: { stok: { increment: peminjaman.jumlah } }
-      })
+      // Tambah stok alat jika kondisi BAIK atau RUSAK (asumsi barang rusak masih kembali tapi rusak, hilang tidak kembali)
+      ...(kondisi !== "HILANG" ? [
+        prisma.alat.update({
+          where: { id: peminjaman.id_alat },
+          data: { stok: { increment: peminjaman.jumlah } }
+        })
+      ] : [])
     ]);
 
     revalidatePath("/dashboard/peminjam/riwayat");

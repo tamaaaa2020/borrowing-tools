@@ -51,19 +51,26 @@ export default async function RiwayatPeminjamanPage() {
                         {r.jumlah}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-500">{r.tanggal_pinjam.toLocaleDateString('id-ID')}</td>
-                    <td className="px-6 py-4 text-slate-500">{r.tanggal_kembali_rencana.toLocaleDateString('id-ID')}</td>
+                    <td className="px-6 py-4 text-slate-500">{new Date(r.tanggal_pinjam).toLocaleDateString('id-ID')}</td>
+                    <td className="px-6 py-4 text-slate-500">{new Date(r.tanggal_kembali_rencana).toLocaleDateString('id-ID')}</td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider
-                        ${r.status === "PENDING" ? "bg-amber-100 text-amber-700" : 
-                          r.status === "DIPINJAM" ? "bg-sky-100 text-sky-700" :
-                          r.status === "DIKEMBALIKAN" ? "bg-emerald-100 text-emerald-700" :
-                          "bg-rose-100 text-rose-700"}`}>
-                        {r.status === "PENDING" && <Clock className="h-3 w-3" />}
-                        {r.status === "DIKEMBALIKAN" && <CheckCircle2 className="h-3 w-3" />}
-                        {r.status === "DITOLAK" && <AlertCircle className="h-3 w-3" />}
-                        {r.status}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider w-fit
+                          ${r.status === "PENDING" ? "bg-amber-100 text-amber-700" : 
+                            r.status === "DIPINJAM" ? "bg-sky-100 text-sky-700" :
+                            r.status === "DIKEMBALIKAN" ? "bg-emerald-100 text-emerald-700" :
+                            "bg-rose-100 text-rose-700"}`}>
+                          {r.status === "PENDING" && <Clock className="h-3 w-3" />}
+                          {r.status === "DIKEMBALIKAN" && <CheckCircle2 className="h-3 w-3" />}
+                          {r.status === "DITOLAK" && <AlertCircle className="h-3 w-3" />}
+                          {r.status}
+                        </span>
+                        {r.pengembalian?.kondisi && r.pengembalian.kondisi !== "BAIK" && (
+                          <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full w-fit">
+                            {r.pengembalian.kondisi}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       {r.pengembalian && Number(r.pengembalian.denda) > 0 ? (
@@ -82,11 +89,17 @@ export default async function RiwayatPeminjamanPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       {r.status === "DIPINJAM" && (
-                        <form action={async () => {
+                        <form action={async (formData: FormData) => {
                           "use server";
-                          await kembalikanAlat(r.id);
-                        }}>
-                          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">Kembalikan Alat</Button>
+                          const kondisi = formData.get("kondisi") as "BAIK" | "RUSAK" | "HILANG";
+                          await kembalikanAlat(r.id, kondisi);
+                        }} className="flex flex-col gap-2 items-end">
+                          <select name="kondisi" className="text-xs border rounded p-1" required defaultValue="BAIK">
+                            <option value="BAIK">Kondisi Baik</option>
+                            <option value="RUSAK">Rusak</option>
+                            <option value="HILANG">Hilang</option>
+                          </select>
+                          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">Kembalikan</Button>
                         </form>
                       )}
                       {r.pengembalian && r.pengembalian.status_pembayaran === "BELUM_BAYAR" && (

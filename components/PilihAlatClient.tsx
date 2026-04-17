@@ -15,6 +15,7 @@ interface Alat {
   deskripsi: string | null;
   stok: number;
   kategori: { nama: string };
+  rak?: { nama: string, lokasi: string } | null;
 }
 
 export default function PilihAlatClient({ alats }: { alats: Alat[] }) {
@@ -107,6 +108,11 @@ export default function PilihAlatClient({ alats }: { alats: Alat[] }) {
                     <span>Stok: <span className="font-bold text-slate-900">{alat.stok}</span></span>
                   </div>
                 </div>
+                {alat.rak && (
+                  <div className="text-xs bg-amber-50 text-amber-700 px-3 py-2 rounded-lg border border-amber-100 flex items-center">
+                    <span className="font-semibold mr-1">Lokasi:</span> {alat.rak.nama} ({alat.rak.lokasi})
+                  </div>
+                )}
                 <Button 
                   onClick={() => addToCart(alat)} 
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-5"

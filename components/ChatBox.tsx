@@ -112,7 +112,7 @@ export function ChatBox({ currentUserId, otherUser, initialMessages }: ChatBoxPr
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Tulis pesan..."
-          className="bg-slate-50 border-none focus:ring-emerald-500"
+          className="bg-slate-50 border-none focus:ring-emerald-500 text-slate-800"
           disabled={isSending}
         />
         <Button type="submit" size="icon" className="bg-emerald-600 hover:bg-emerald-700 shrink-0" disabled={isSending}>

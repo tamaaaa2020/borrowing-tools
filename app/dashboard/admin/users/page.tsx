@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { updateUserStatus, deleteUser } from "@/actions/user";
+import { updateUserStatus, deleteUser, autoRejectPendingUsers } from "@/actions/user";
 import { UserCheck, UserX, Trash2, Clock, Pencil } from "lucide-react";
 
 export default async function UsersPage() {
+  await autoRejectPendingUsers();
+
   const users = await prisma.user.findMany({
     orderBy: [
       { status: "asc" }, // Tampilkan PENDING di atas
@@ -60,7 +62,7 @@ export default async function UsersPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-slate-500">
-                        {user.createdAt.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {new Date(user.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex justify-end gap-2">

@@ -8,8 +8,8 @@ import { pusherServer } from "@/lib/pusher";
 
 export async function createPaymentLink(pengembalianId: number) {
   const session = await getSession();
-  if (!session || (session.role !== "ADMIN" && session.role !== "PETUGAS")) {
-    return { error: "Unauthorized" };
+  if (!session || session.role !== "PETUGAS") {
+    return { error: "Unauthorized: Hanya petugas yang dapat mengirim QRIS" };
   }
 
   try {

@@ -3,7 +3,7 @@ import { logoutUser } from "@/actions/auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Package, User, LogOut, Wrench, BarChart3, Users, PackagePlus, History, MessageSquare } from "lucide-react";
+import { Package, User, LogOut, Wrench, BarChart3, Users, PackagePlus, History, MessageSquare, LibraryBig } from "lucide-react";
 import { Suspense } from "react";
 import MobileHeader from "@/components/MobileHeader";
 
@@ -30,6 +30,7 @@ export default async function DashboardLayout({
           { href: "/dashboard/admin/users", label: "Pengguna", icon: Users },
           { href: "/dashboard/admin/alat", label: "Alat", icon: PackagePlus },
           { href: "/dashboard/admin/kategori", label: "Kategori", icon: Package },
+          { href: "/dashboard/admin/rak", label: "Rak", icon: LibraryBig },
           { href: "/dashboard/admin/peminjaman", label: "Peminjaman", icon: History },
           { href: "/dashboard/admin/pengembalian", label: "Pengembalian", icon: History },
           { href: "/dashboard/admin/laporan", label: "Laporan", icon: BarChart3 },

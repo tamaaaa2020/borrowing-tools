@@ -1,8 +1,10 @@
-import { getChatContacts, getMessages } from "@/actions/chat";
+import { getChatContacts, getMessages, clearOldMessages } from "@/actions/chat";
 import { getSession } from "@/lib/auth";
 import { ChatBox } from "@/components/ChatBox";
-import { MessageSquare, Users } from "lucide-react";
+import { MessageSquare, Users, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { revalidatePath } from "next/cache";
 
 export default async function PetugasChatPage({
   searchParams,
@@ -10,17 +12,30 @@ export default async function PetugasChatPage({
   searchParams: Promise<{ user?: string }>;
 }) {
   const session = await getSession();
+  const resolvedParams = await searchParams;
   const contacts = await getChatContacts();
-  const selectedUserId = (await searchParams).user ? parseInt((await searchParams).user!) : null;
+  const selectedUserId = resolvedParams.user ? parseInt(resolvedParams.user) : null;
   
   const selectedUser = contacts.find(c => c.id === selectedUserId);
   const initialMessages = selectedUserId ? await getMessages(selectedUserId) : [];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <MessageSquare className="h-6 w-6 text-emerald-600" />
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Panel Customer Service</h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-6 w-6 text-emerald-600" />
+          <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Panel Customer Service</h2>
+        </div>
+        <form action={async () => {
+          "use server";
+          await clearOldMessages();
+          revalidatePath("/dashboard/petugas/chat");
+        }}>
+          <Button size="sm" variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50">
+            <Trash2 className="h-4 w-4 mr-2" />
+            Bersihkan Chat Lama (&gt;7 Hari)
+          </Button>
+        </form>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
@@ -56,6 +71,7 @@ export default async function PetugasChatPage({
         <div className="md:col-span-2">
           {selectedUser ? (
             <ChatBox 
+              key={selectedUser.id}
               currentUserId={session.id} 
               otherUser={selectedUser} 
               initialMessages={initialMessages} 
